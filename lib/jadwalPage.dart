@@ -49,27 +49,31 @@ class JadwalPage extends StatelessWidget {
                       child: Column(
                         children: const [
                           KartuJadwal(
-                            nama: 'Andi Pratama',
+                            nama: 'Bahlil Lahadalia',
                             mapel: 'Matematika SMA',
                             harga: 'Rp75.000 / sesi',
+                            imagePath: 'assets/bahlil.png',
                           ),
                           SizedBox(height: 16),
                           KartuJadwal(
-                            nama: 'Siti Nurhaliza',
+                            nama: 'Puan Maharani',
                             mapel: 'Bahasa Inggris',
                             harga: 'Rp65.000 / sesi',
+                            imagePath: 'assets/puan maharani.png',
                           ),
                           SizedBox(height: 16),
                           KartuJadwal(
-                            nama: 'Budi Santoso',
+                            nama: 'Megawati Soekarnoputri',
                             mapel: 'Fisika SMA',
                             harga: 'Rp80.000 / sesi',
+                            imagePath: 'assets/megawati.png',
                           ),
                           SizedBox(height: 16),
                           KartuJadwal(
-                            nama: 'Rina Wulandari',
+                            nama: 'Mulyono',
                             mapel: 'Kimia SMA',
                             harga: 'Rp70.000 / sesi',
+                            imagePath: 'assets/pigai.png',
                           ),
                         ],
                       ),

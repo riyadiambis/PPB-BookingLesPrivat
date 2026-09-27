@@ -31,12 +31,14 @@ class TutorData {
   final String mapel;
   final String harga;
   final Color warnaFoto;
+  final String imagePath;
 
   const TutorData({
     required this.nama,
     required this.mapel,
     required this.harga,
     required this.warnaFoto,
+    required this.imagePath,
   });
 }
 
@@ -48,34 +50,39 @@ class HomePage extends StatelessWidget {
     // Data dummy daftar tutor yang ditampilkan di halaman Home.
     final List<TutorData> daftarTutor = [
       const TutorData(
-        nama: 'Andi Pratama',
+        nama: 'Bahlil Lahadalia',
         mapel: 'Matematika SMA',
         harga: 'Rp75.000 / sesi',
         warnaFoto: Color(0xFFB3C7F7),
+        imagePath: 'assets/bahlil.png',
       ),
       const TutorData(
-        nama: 'Siti Nurhaliza',
+        nama: 'Puan Maharani',
         mapel: 'Bahasa Inggris',
         harga: 'Rp65.000 / sesi',
         warnaFoto: Color(0xFFF7C6B3),
+        imagePath: 'assets/puan maharani.png',
       ),
       const TutorData(
-        nama: 'Budi Santoso',
+        nama: 'Megawati Soekarnoputri',
         mapel: 'Fisika SMA',
         harga: 'Rp80.000 / sesi',
         warnaFoto: Color(0xFFB3F7C6),
+        imagePath: 'assets/megawati.png',
       ),
       const TutorData(
-        nama: 'Rina Wulandari',
+        nama: 'Mulyono',
         mapel: 'Kimia SMA',
         harga: 'Rp70.000 / sesi',
         warnaFoto: Color(0xFFF7E3B3),
+        imagePath: 'assets/pigai.png',
       ),
       const TutorData(
-        nama: 'Dedi Firmansyah',
+        nama: 'Pigai',
         mapel: 'Bahasa Indonesia',
         harga: 'Rp60.000 / sesi',
         warnaFoto: Color(0xFFD7B3F7),
+        imagePath: 'assets/image.png',
       ),
     ];
 
@@ -208,7 +215,7 @@ class HomePage extends StatelessWidget {
           // Container: kotak foto placeholder tutor berwarna solid dengan sudut membulat.
           // foto tutor, ambil dari folder assets
           Image.asset(
-            'assets/tutor.png',
+            tutor.imagePath,
             width: 70,
             height: 70,
             fit: BoxFit.cover,

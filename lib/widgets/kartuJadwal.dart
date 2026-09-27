@@ -5,12 +5,14 @@ class KartuJadwal extends StatelessWidget {
   final String nama;
   final String mapel;
   final String harga;
+  final String imagePath;
 
   const KartuJadwal({
     super.key,
     required this.nama,
     required this.mapel,
     required this.harga,
+    required this.imagePath,
   });
 
   @override
@@ -32,7 +34,7 @@ class KartuJadwal extends StatelessWidget {
         children: [
           // foto tutor dari assets
           Image.asset(
-            'assets/tutor.png',
+            imagePath,
             width: 70,
             height: 70,
             fit: BoxFit.cover,
