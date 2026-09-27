@@ -32,6 +32,18 @@ MaterialApp, Scaffold, SafeArea, SingleChildScrollView, Padding, Column, Row, Co
 
 Image.asset untuk menampilkan foto tutor dari folder assets, Stack dan Positioned untuk menumpuk panel total di atas daftar jadwal, BoxShadow untuk memberi bayangan pada panel total, TextField dengan keyboardType angka untuk input jumlah sesi, NavigationBar untuk menu navigasi bawah, serta Navigator.push dan Navigator.pop untuk berpindah antar halaman.
 
+## Struktur Project
+
+```
+lib/
+├── main.dart              # halaman Beranda
+├── jadwalPage.dart        # halaman Jadwal
+└── widgets/
+    └── kartuJadwal.dart   # widget kartu sesi pada halaman Jadwal
+assets/
+└── ...                    # foto masing-masing tutor
+```
+
 ## Rencana Pengembangan
 
 Selain pemesanan tutor, aplikasi ini direncanakan memiliki fitur presensi sesi les. Alurnya dimulai dari pemesanan tutor, penjadwalan sesi, pencatatan kehadiran, hingga rekap riwayat belajar siswa.
