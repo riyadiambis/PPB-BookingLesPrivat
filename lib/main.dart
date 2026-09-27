@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:posttest1_booking_les_privat/jadwalPage.dart';
 
 void main() {
   runApp(const BookingLesPrivatApp());
@@ -158,27 +159,27 @@ class HomePage extends StatelessWidget {
         ),
       ),
       // Container: bingkai bottom navigation bar dengan latar putih dan bayangan tipis di bagian atas.
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 6,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        // Row: mensejajarkan tiga menu navigasi Beranda, Jadwal, dan Profil secara horizontal.
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildMenuNavigasi(Icons.home, 'Beranda'),
-            _buildMenuNavigasi(Icons.calendar_today, 'Jadwal'),
-            _buildMenuNavigasi(Icons.person, 'Profil'),
-          ],
-        ),
+      // nav bawah Home, index 0 artinya tab Beranda yang lagi aktif
+      bottomNavigationBar: NavigationBar(
+        backgroundColor: Colors.white,
+        selectedIndex: 0,
+        onDestinationSelected: (index) {
+          // kalau pencet Jadwal, buka halaman JadwalPage di atas Home
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const JadwalPage()),
+            );
+          }
+        },
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home), label: 'Beranda'),
+          NavigationDestination(
+            icon: Icon(Icons.calendar_today),
+            label: 'Jadwal',
+          ),
+          NavigationDestination(icon: Icon(Icons.person), label: 'Profil'),
+        ],
       ),
     );
   }
@@ -205,15 +206,12 @@ class HomePage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Container: kotak foto placeholder tutor berwarna solid dengan sudut membulat.
-          Container(
+          // foto tutor, ambil dari folder assets
+          Image.asset(
+            'assets/tutor.png',
             width: 70,
             height: 70,
-            decoration: BoxDecoration(
-              color: tutor.warnaFoto,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            // Icon: ikon orang sebagai placeholder foto tutor karena belum memakai gambar asli.
-            child: const Icon(Icons.person, color: Colors.white, size: 36),
+            fit: BoxFit.cover,
           ),
           // SizedBox: jarak horizontal antara foto placeholder dan kolom informasi tutor.
           const SizedBox(width: 12),
