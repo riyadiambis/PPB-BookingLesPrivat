@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:posttest1_booking_les_privat/jadwalPage.dart';
+import 'package:posttest1_booking_les_privat/providers/booking_provider.dart';
 
 void main() {
-  runApp(const BookingLesPrivatApp());
+  runApp(
+    // ChangeNotifierProvider: bikin dan sediain satu instance BookingProvider
+    // ke seluruh widget di bawahnya, jadi Home dan Jadwal bisa akses state yang sama
+    ChangeNotifierProvider(
+      create: (_) => BookingProvider(),
+      child: const BookingLesPrivatApp(),
+    ),
+  );
 }
 
 // Kelas utama aplikasi Booking Les Privat, titik masuk yang dijalankan oleh fungsi main().
@@ -25,66 +34,31 @@ class BookingLesPrivatApp extends StatelessWidget {
   }
 }
 
-// Data dummy tutor: menyimpan informasi nama, mapel, harga, dan warna foto placeholder untuk tiap tutor.
-class TutorData {
-  final String nama;
-  final String mapel;
-  final String harga;
-  final Color warnaFoto;
-  final String imagePath;
-
-  const TutorData({
-    required this.nama,
-    required this.mapel,
-    required this.harga,
-    required this.warnaFoto,
-    required this.imagePath,
-  });
-}
-
-class HomePage extends StatelessWidget {
+// HomePage diubah dari StatelessWidget jadi StatefulWidget, soalnya butuh setState()
+// buat searchQuery. Ini state lokal yang cuma dipakai halaman ini sendiri, beda
+// sama data booking yang dikelola bareng-bareng pakai BookingProvider
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  // searchQuery: state lokal buat nyimpen kata kunci yang lagi diketik
+  String searchQuery = '';
+
+  @override
   Widget build(BuildContext context) {
-    // Data dummy daftar tutor yang ditampilkan di halaman Home.
-    final List<TutorData> daftarTutor = [
-      const TutorData(
-        nama: 'Bahlil Lahadalia',
-        mapel: 'Matematika SMA',
-        harga: 'Rp75.000 / sesi',
-        warnaFoto: Color(0xFFB3C7F7),
-        imagePath: 'assets/bahlil.png',
-      ),
-      const TutorData(
-        nama: 'Puan Maharani',
-        mapel: 'Bahasa Inggris',
-        harga: 'Rp65.000 / sesi',
-        warnaFoto: Color(0xFFF7C6B3),
-        imagePath: 'assets/puan maharani.png',
-      ),
-      const TutorData(
-        nama: 'Megawati Soekarnoputri',
-        mapel: 'Fisika SMA',
-        harga: 'Rp80.000 / sesi',
-        warnaFoto: Color(0xFFB3F7C6),
-        imagePath: 'assets/megawati.png',
-      ),
-      const TutorData(
-        nama: 'Mulyono',
-        mapel: 'Kimia SMA',
-        harga: 'Rp70.000 / sesi',
-        warnaFoto: Color(0xFFF7E3B3),
-        imagePath: 'assets/pigai.png',
-      ),
-      const TutorData(
-        nama: 'Pigai',
-        mapel: 'Bahasa Indonesia',
-        harga: 'Rp60.000 / sesi',
-        warnaFoto: Color(0xFFD7B3F7),
-        imagePath: 'assets/image.png',
-      ),
-    ];
+    // context.watch bikin HomePage ikut rebuild tiap kali BookingProvider berubah
+    final bookingProvider = context.watch<BookingProvider>();
+
+    // filter daftar tutor sesuai searchQuery, dicocokin ke nama atau mapel
+    final daftarTutor = bookingProvider.daftarTutor.where((tutor) {
+      final keyword = searchQuery.toLowerCase();
+      return tutor.nama.toLowerCase().contains(keyword) ||
+          tutor.mapel.toLowerCase().contains(keyword);
+    }).toList();
 
     // Scaffold: kerangka halaman Home, menampung appBar judul, body daftar tutor, dan bottomNavigationBar.
     return Scaffold(
@@ -128,8 +102,13 @@ class HomePage extends StatelessWidget {
                     children: [
                       // Expanded: melebarkan kolom pencarian mengisi sisa ruang di samping ikon search.
                       Expanded(
-                        // TextField: tempat pengguna mengetik kata kunci nama tutor atau mata pelajaran.
+                        // TextField: tempat pengguna mengetik kata kunci, onChanged update searchQuery lewat setState
                         child: TextField(
+                          onChanged: (value) {
+                            setState(() {
+                              searchQuery = value;
+                            });
+                          },
                           decoration: const InputDecoration(
                             hintText: 'Cari tutor atau mapel...',
                             border: InputBorder.none,
@@ -154,18 +133,26 @@ class HomePage extends StatelessWidget {
                 ),
                 // SizedBox: jarak kosong antara judul section dan kartu tutor pertama.
                 const SizedBox(height: 12),
-                // Column: menumpuk seluruh kartu tutor dari data dummy secara vertikal berurutan.
-                Column(
-                  children: daftarTutor
-                      .map((tutor) => _buildKartuTutor(tutor))
-                      .toList(),
-                ),
+                // kalau hasil pencarian kosong, kasih tau usernya daripada nampilin kosong aja
+                if (daftarTutor.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Text(
+                      'Tutor tidak ditemukan',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  )
+                else
+                  // Column: menumpuk seluruh kartu tutor hasil filter secara vertikal berurutan.
+                  Column(
+                    children:
+                        daftarTutor.map((tutor) => _buildKartuTutor(tutor)).toList(),
+                  ),
               ],
             ),
           ),
         ),
       ),
-      // Container: bingkai bottom navigation bar dengan latar putih dan bayangan tipis di bagian atas.
       // nav bawah Home, index 0 artinya tab Beranda yang lagi aktif
       bottomNavigationBar: NavigationBar(
         backgroundColor: Colors.white,
@@ -212,8 +199,7 @@ class HomePage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Container: kotak foto placeholder tutor berwarna solid dengan sudut membulat.
-          // foto tutor, ambil dari folder assets
+          // Image.asset: foto tutor, ambil dari folder assets
           Image.asset(
             tutor.imagePath,
             width: 70,
@@ -256,23 +242,37 @@ class HomePage extends StatelessWidget {
                 ),
                 // SizedBox: jarak vertikal antara harga dan tombol booking di bawahnya.
                 const SizedBox(height: 10),
-                // Container: dibentuk menyerupai tombol "Booking Sekarang" berwarna aksen dengan sudut membulat.
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF3A5BA0),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  // Text: label "Booking Sekarang" pada tombol, statis tanpa aksi tap.
-                  child: const Text(
-                    'Booking Sekarang',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                // GestureDetector: biar Container di bawah ini bisa dipencet kayak tombol
+                GestureDetector(
+                  onTap: () {
+                    // context.read dipake di dalam callback, cuma manggil fungsi sekali
+                    // (beda sama context.watch yang dipake buat dengerin terus-terusan)
+                    context.read<BookingProvider>().tambahSesi(tutor.id);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${tutor.nama} ditambahkan ke Jadwal'),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                  // Container: dibentuk menyerupai tombol "Booking Sekarang" berwarna aksen dengan sudut membulat.
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3A5BA0),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    // Text: label "Booking Sekarang" pada tombol.
+                    child: const Text(
+                      'Booking Sekarang',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -281,25 +281,6 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  // Widget menu navigasi bawah: dibangun dari Column berisi Icon dan Text untuk satu menu.
-  Widget _buildMenuNavigasi(IconData icon, String label) {
-    // Column: menumpuk ikon di atas label teks untuk satu item menu navigasi.
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Icon: simbol visual menu navigasi, membedakan Beranda, Jadwal, dan Profil.
-        Icon(icon, color: const Color(0xFF3A5BA0)),
-        // SizedBox: jarak kecil antara ikon dan label teks menu di bawahnya.
-        const SizedBox(height: 4),
-        // Text: nama menu navigasi (Beranda/Jadwal/Profil) yang tampil di bawah ikon.
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: Color(0xFF3A5BA0)),
-        ),
-      ],
     );
   }
 }

@@ -6,6 +6,8 @@ class KartuJadwal extends StatelessWidget {
   final String mapel;
   final String harga;
   final String imagePath;
+  final int jumlahSesi; // jumlah sesi tutor ini, diambil dari BookingProvider
+  final ValueChanged<int> onJumlahBerubah; // dipanggil pas input diketik ulang
 
   const KartuJadwal({
     super.key,
@@ -13,6 +15,8 @@ class KartuJadwal extends StatelessWidget {
     required this.mapel,
     required this.harga,
     required this.imagePath,
+    required this.jumlahSesi,
+    required this.onJumlahBerubah,
   });
 
   @override
@@ -70,13 +74,21 @@ class KartuJadwal extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          // input jumlah sesi, keyboardnya angka
+          // input jumlah sesi, keyboardnya angka. pake initialValue bukan controller
+          // soalnya tiap kartu nggak butuh controller sendiri, cukup baca dari provider
           SizedBox(
             width: 48,
             height: 48,
-            child: TextField(
+            child: TextFormField(
+              key: ValueKey('jumlah-$nama'),
+              initialValue: jumlahSesi.toString(),
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
+              // tiap user ganti angka, parse ke int terus lempar ke JadwalPage
+              onChanged: (value) {
+                final jumlahBaru = int.tryParse(value) ?? 0;
+                onJumlahBerubah(jumlahBaru);
+              },
               decoration: InputDecoration(
                 hintText: '1',
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
