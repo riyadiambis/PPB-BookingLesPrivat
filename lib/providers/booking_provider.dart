@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// data satu tutor, dipindah ke sini (sebelumnya ada di main.dart) biar bisa dipakai provider
+// data satu tutor, sekarang ada sisaSlot (mirip product.stock di modul)
 class TutorData {
   final String id; // id unik buat jadi key di map jumlahSesi
   final String nama;
@@ -8,23 +8,25 @@ class TutorData {
   final String harga; // teks harga buat ditampilin, misal "Rp75.000 / sesi"
   final int hargaAngka; // harga dalam angka, buat dihitung total
   final String imagePath;
+  int sisaSlot; // kuota sesi tutor, gak final soalnya bakal berkurang pas dibooking
 
-  const TutorData({
+  TutorData({
     required this.id,
     required this.nama,
     required this.mapel,
     required this.harga,
     required this.hargaAngka,
     required this.imagePath,
+    required this.sisaSlot,
   });
 }
 
-// BookingProvider: state management pake konsep Provider dari modul.
-// Nyimpen daftar tutor dan jumlah sesi yang mau dibooking, dipakai bareng
-// sama HomePage (buat nambahin booking) dan JadwalPage (buat nampilin & edit)
+// BookingProvider: class yang extends ChangeNotifier, jadi bisa ngasih tau
+// widget yang dengerin (Consumer / context.watch) tiap kali state berubah.
+// Nyimpen data tutor + keranjang booking, dipakai bareng Beranda, Jadwal, dan NavBawah
 class BookingProvider extends ChangeNotifier {
-  // data dummy tutor, sama kayak yang dulu ada di HomePage
-  final List<TutorData> daftarTutor = const [
+  // data dummy tutor, sekarang tiap tutor punya kuota slot
+  final List<TutorData> daftarTutor = [
     TutorData(
       id: 't1',
       nama: 'Bahlil Lahadalia',
@@ -32,6 +34,7 @@ class BookingProvider extends ChangeNotifier {
       harga: 'Rp75.000 / sesi',
       hargaAngka: 75000,
       imagePath: 'assets/bahlil.png',
+      sisaSlot: 3,
     ),
     TutorData(
       id: 't2',
@@ -40,6 +43,7 @@ class BookingProvider extends ChangeNotifier {
       harga: 'Rp65.000 / sesi',
       hargaAngka: 65000,
       imagePath: 'assets/puan maharani.png',
+      sisaSlot: 5,
     ),
     TutorData(
       id: 't3',
@@ -48,6 +52,7 @@ class BookingProvider extends ChangeNotifier {
       harga: 'Rp80.000 / sesi',
       hargaAngka: 80000,
       imagePath: 'assets/megawati.png',
+      sisaSlot: 2,
     ),
     TutorData(
       id: 't4',
@@ -56,6 +61,7 @@ class BookingProvider extends ChangeNotifier {
       harga: 'Rp70.000 / sesi',
       hargaAngka: 70000,
       imagePath: 'assets/pigai.png',
+      sisaSlot: 4,
     ),
     TutorData(
       id: 't5',
@@ -64,44 +70,51 @@ class BookingProvider extends ChangeNotifier {
       harga: 'Rp60.000 / sesi',
       hargaAngka: 60000,
       imagePath: 'assets/image.png',
+      sisaSlot: 3,
     ),
   ];
 
-  // nyimpen jumlah sesi tiap tutor yang mau dibooking, key-nya id tutor.
-  // kalau tutor belum dipilih, dia nggak ada di map ini sama sekali
+  // jumlah sesi tiap tutor di keranjang, key-nya id tutor (mirip cartQuantities di modul)
   final Map<String, int> jumlahSesi = {};
 
-  // daftar tutor yang udah dipilih (jumlah sesinya lebih dari 0), ini yang
-  // ditampilin di halaman Jadwal sebagai "keranjang" booking
+  // tutor yang ada di keranjang (jumlah sesinya lebih dari 0), ditampilin di halaman Jadwal
   List<TutorData> get daftarBooking =>
       daftarTutor.where((t) => (jumlahSesi[t.id] ?? 0) > 0).toList();
 
-  // total harga dari semua sesi yang udah dipilih
-  int get grandTotal {
-    int total = 0;
-    for (final tutor in daftarBooking) {
-      total += tutor.hargaAngka * (jumlahSesi[tutor.id] ?? 0);
-    }
-    return total;
-  }
+  // total semua sesi di keranjang, dipakai buat angka badge di nav bawah
+  int get totalSesiKeranjang =>
+      jumlahSesi.values.fold(0, (total, jumlah) => total + jumlah);
 
-  // dipanggil pas pencet "Booking Sekarang" di Home, nambah 1 sesi buat tutor itu
-  void tambahSesi(String tutorId) {
-    jumlahSesi[tutorId] = (jumlahSesi[tutorId] ?? 0) + 1;
+  // total harga otomatis, pake fold kayak grandTotal di modul
+  int get grandTotal => daftarTutor.fold(0, (total, tutor) {
+        return total + tutor.hargaAngka * (jumlahSesi[tutor.id] ?? 0);
+      });
+
+  // mirip addToCart() di modul: kalau slot habis langsung return,
+  // kalau masih ada slotnya dikurangin terus jumlah sesi di keranjang nambah 1
+  void tambahSesi(TutorData tutor) {
+    if (tutor.sisaSlot == 0) return;
+
+    tutor.sisaSlot--;
+    jumlahSesi[tutor.id] = (jumlahSesi[tutor.id] ?? 0) + 1;
     notifyListeners(); // kasih tau widget yang dengerin kalau state berubah
   }
 
-  // dipanggil pas user ngetik ulang jumlah sesi di kolom input halaman Jadwal
-  void setJumlahSesi(String tutorId, int jumlah) {
-    if (jumlah <= 0) {
-      jumlahSesi.remove(tutorId); // jumlah 0 artinya dibatalin dari booking
+  // kebalikan tambahSesi: sesi dikurangin 1 dan slotnya dibalikin ke tutor
+  void kurangiSesi(TutorData tutor) {
+    final jumlah = jumlahSesi[tutor.id] ?? 0;
+    if (jumlah == 0) return;
+
+    tutor.sisaSlot++;
+    if (jumlah == 1) {
+      jumlahSesi.remove(tutor.id); // tinggal 1 terus dikurangin, keluar dari keranjang
     } else {
-      jumlahSesi[tutorId] = jumlah;
+      jumlahSesi[tutor.id] = jumlah - 1;
     }
     notifyListeners();
   }
 
-  // dipanggil pas pencet "Konfirmasi Booking", ngosongin keranjang
+  // pas konfirmasi keranjang dikosongin, slot gak dibalikin karena udah kepake beneran
   void konfirmasiBooking() {
     jumlahSesi.clear();
     notifyListeners();

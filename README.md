@@ -4,66 +4,77 @@ Aplikasi mobile berbasis Flutter untuk mencari dan memesan tutor les privat sesu
 
 ## Tampilan Aplikasi
 
-![Tampilan halaman beranda](https://github.com/riyadiambis/PPB-BookingLesPrivat/raw/main/docs/screenshot-beranda.png)
+![Tampilan halaman beranda](docs/screenshot-beranda.png)
 
-![Tampilan halaman jadwal](https://github.com/riyadiambis/PPB-BookingLesPrivat/raw/main/docs/screenshot-jadwal.png)
+![Tampilan halaman jadwal](docs/screenshot-jadwal.png)
+
+![Tampilan halaman profil](docs/screenshot-profil.png)
 
 ## Progres Pengembangan
 
-| Posttest   | Materi                         | Yang Dikerjakan                                                 | Status  |
-| ---------- | ------------------------------ | --------------------------------------------------------------- | ------- |
-| Posttest 1 | Widget Dasar                   | Halaman beranda: pencarian, daftar tutor, navigasi bawah        | Selesai |
-| Posttest 2 | Widget Lanjutan dan Navigation | Foto tutor, halaman Jadwal, panel total, navigasi antar halaman | Selesai |
-| Posttest 3 | State Management (Provider)    | BookingProvider buat kelola data tutor dan jumlah sesi, total harga otomatis, popup konfirmasi booking | Selesai |
+| Posttest   | Materi                         | Yang Dikerjakan                                                                 | Status  |
+| ---------- | ------------------------------ | ------------------------------------------------------------------------------- | ------- |
+| Posttest 1 | Widget Dasar                   | Halaman beranda: pencarian, daftar tutor, navigasi bawah                        | Selesai |
+| Posttest 2 | Widget Lanjutan dan Navigation | Foto tutor, halaman Jadwal, panel total, navigasi antar halaman                 | Selesai |
+| Posttest 3 | State Management Provider      | BookingProvider, total harga otomatis, konfirmasi booking, popup sukses         | Selesai |
+| Posttest 4 | Provider Lanjutan              | MultiProvider, Consumer, kuota slot tutor, badge keranjang, halaman Profil      | Selesai |
 
 ## Fitur Saat Ini
 
-- Kolom pencarian tutor atau mata pelajaran
-- Daftar tutor berisi foto, nama, mata pelajaran, harga per sesi, dan tombol booking
-- Menu navigasi bawah: Beranda, Jadwal, dan Profil
-- Perpindahan halaman dari Beranda ke Jadwal dan sebaliknya
-- Halaman Jadwal berisi daftar sesi yang akan dibooking, input jumlah sesi, serta panel total harga yang tetap berada di bagian bawah layar
-- State booking (data tutor yang dipilih, jumlah sesi, total harga) dikelola terpusat pakai Provider, jadi Beranda dan Jadwal selalu sinkron
-- Total harga di halaman Jadwal terhitung otomatis dan update seketika tanpa refresh manual
-- Popup konfirmasi booking (icon centang + auto tertutup) saat tombol Konfirmasi Booking dipencet
+- Pencarian tutor berdasarkan nama atau mata pelajaran
+- Daftar tutor berisi foto, nama, mapel, harga per sesi, sisa slot, dan tombol booking
+- Kuota slot per tutor: slot berkurang saat dibooking, tutor dengan slot habis otomatis hilang dari Beranda
+- Badge jumlah sesi di tab Jadwal yang ikut berubah secara otomatis
+- Halaman Jadwal dengan tombol tambah dan kurang sesi, tombol tambah nonaktif saat slot penuh
+- Total harga otomatis dan tombol Konfirmasi Booking dengan popup sukses berisi total bayar
+- Halaman Profil berisi data pengguna, statistik total sesi dan total pengeluaran, serta riwayat booking
 
-Data tutor masih berupa data contoh dan tampilan masih bersifat statis.
+Data tutor masih berupa data contoh dan akan kembali ke kondisi awal saat aplikasi dijalankan ulang.
 
-## Widget yang Digunakan (Posttest 1)
+## Konsep State Management (Posttest 3 dan 4)
 
-MaterialApp, Scaffold, SafeArea, SingleChildScrollView, Padding, Column, Row, Container, SizedBox, Text, Icon, TextField, dan Expanded. Setiap penggunaan widget diberi komentar di dalam kode.
+- **ChangeNotifier**: BookingProvider (data tutor dan keranjang) serta RiwayatProvider (riwayat booking)
+- **notifyListeners()**: dipanggil setiap state berubah, misalnya saat tambah sesi, kurangi sesi, dan konfirmasi
+- **MultiProvider**: mendaftarkan BookingProvider dan RiwayatProvider sekaligus di main.dart
+- **ChangeNotifierProvider**: membuat dan menyediakan instance tiap provider ke seluruh widget di bawahnya
+- **Consumer**: dipakai di daftar tutor Beranda, NavBawah (badge), dan halaman Profil agar hanya bagian tersebut yang rebuild
+- **context.watch**: dipakai di halaman Jadwal untuk mendengarkan perubahan isi keranjang
+- **context.read**: dipakai di dalam callback tombol, misalnya mengambil grandTotal sebelum keranjang dikosongkan
+- **setState()**: tetap dipakai untuk state lokal searchQuery di Beranda
 
-## Widget yang Digunakan (Posttest 2)
+## Widget yang Digunakan
 
-Image.asset untuk menampilkan foto tutor dari folder assets, Stack dan Positioned untuk menumpuk panel total di atas daftar jadwal, BoxShadow untuk memberi bayangan pada panel total, TextField dengan keyboardType angka untuk input jumlah sesi, NavigationBar untuk menu navigasi bawah, serta Navigator.push dan Navigator.pop untuk berpindah antar halaman.
+- **Posttest 1**: MaterialApp, Scaffold, SafeArea, SingleChildScrollView, Padding, Column, Row, Container, SizedBox, Text, Icon, TextField, Expanded
+- **Posttest 2**: Image.asset, Stack, Positioned, BoxShadow, NavigationBar, Navigator.push dan Navigator.pop
+- **Posttest 3**: GestureDetector, SnackBar, ElevatedButton, Dialog
+- **Posttest 4**: MultiProvider, Consumer, Badge, IconButton, CircleAvatar, Navigator.pushReplacement dan Navigator.popUntil
 
-## State Management (Posttest 3)
-
-Posttest ini menerapkan konsep Provider yang dibahas di modul. Data tutor dan jumlah sesi booking dipindah dari masing-masing halaman ke satu `BookingProvider` (class yang extends `ChangeNotifier`), lalu didaftarkan ke seluruh aplikasi lewat `ChangeNotifierProvider` di `main.dart`. Beranda dan Jadwal membaca serta mengubah data yang sama lewat `context.watch` dan `context.read`, dan setiap perubahan (booking baru, ubah jumlah sesi, konfirmasi booking) dikabarkan ke semua halaman lewat `notifyListeners()`. State lokal yang cuma dipakai satu halaman, seperti kata kunci pencarian di Beranda, tetap pakai `setState()` biasa.
-
-Di luar materi modul, ditambahkan juga popup `AlertDialog` dengan icon centang yang muncul dan otomatis tertutup sendiri setelah Konfirmasi Booking dipencet, sebagai penanda visual bahwa booking berhasil.
+Setiap penggunaan widget diberi komentar di dalam kode.
 
 ## Struktur Project
 
 ```
 lib/
-├── main.dart                      # halaman Beranda
-├── jadwalPage.dart                # halaman Jadwal
+├── main.dart                      # halaman Beranda + MultiProvider
+├── jadwalPage.dart                # halaman Jadwal (keranjang booking)
+├── profilPage.dart                # halaman Profil dan riwayat booking
 ├── providers/
-│   └── booking_provider.dart      # BookingProvider, kelola state tutor & booking
+│   ├── booking_provider.dart      # data tutor, kuota slot, dan keranjang
+│   └── riwayat_provider.dart      # riwayat booking yang sudah dikonfirmasi
 └── widgets/
-    └── kartuJadwal.dart           # widget kartu sesi pada halaman Jadwal
+    ├── kartuJadwal.dart           # kartu sesi di halaman Jadwal
+    └── navBawah.dart              # navigasi bawah + badge keranjang
 assets/
 └── ...                            # foto masing-masing tutor
 ```
 
 ## Rencana Pengembangan
 
-Selain pemesanan tutor, aplikasi ini direncanakan memiliki fitur presensi sesi les. Alurnya dimulai dari pemesanan tutor, penjadwalan sesi, pencatatan kehadiran, hingga rekap riwayat belajar siswa.
+Selain pemesanan tutor, aplikasi ini direncanakan memiliki fitur presensi sesi les. Label status "Terjadwal" pada riwayat booking akan menjadi dasar pencatatan kehadiran dan rekap riwayat belajar siswa.
 
 ## Cara Menjalankan
 
-```
+```bash
 flutter pub get
 flutter run -d chrome
 ```
